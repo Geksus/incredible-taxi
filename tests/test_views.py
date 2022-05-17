@@ -17,17 +17,17 @@ class PublicCarTests(TestCase):
 class PrivateCarTests(TestCase):
     def setUp(self) -> None:
         self.user = get_user_model().objects.create_user(
-            username="user",
-            password="user12345",
+            username="test_user",
+            password="password1",
         )
         self.client.force_login(self.user)
 
     def test_retrieve_car(self):
-        manufacturer1 = Manufacturer.objects.create(name="BMW", country="Germany")
-        manufacturer2 = Manufacturer.objects.create(name="Audi", country="Germany")
+        manufacturer1 = Manufacturer.objects.create(name="Fiat", country="Italy")
+        manufacturer2 = Manufacturer.objects.create(name="Lancia", country="Italy")
 
-        Car.objects.create(model="e32", manufacturer=manufacturer1)
-        Car.objects.create(model="Q8", manufacturer=manufacturer2)
+        Car.objects.create(model="Panda", manufacturer=manufacturer1)
+        Car.objects.create(model="Delta", manufacturer=manufacturer2)
 
         response = self.client.get(CAR_URL)
 
@@ -38,11 +38,11 @@ class PrivateCarTests(TestCase):
         self.assertTemplateUsed(response, "taxi/car_list.html")
 
     def test_delete_car(self):
-        manufacturer1 = Manufacturer.objects.create(name="BMW", country="Germany")
-        manufacturer2 = Manufacturer.objects.create(name="Audi", country="Germany")
+        manufacturer1 = Manufacturer.objects.create(name="Fiat", country="Italy")
+        manufacturer2 = Manufacturer.objects.create(name="Lancia", country="Italy")
 
-        car1 = Car.objects.create(model="e32", manufacturer=manufacturer1)
-        car2 = Car.objects.create(model="RS7", manufacturer=manufacturer2)
+        car1 = Car.objects.create(model="Panda", manufacturer=manufacturer1)
+        car2 = Car.objects.create(model="Delta", manufacturer=manufacturer2)
 
         self.assertEqual(Car.objects.count(), 2)
 
@@ -50,31 +50,6 @@ class PrivateCarTests(TestCase):
         self.client.post(reverse("taxi:car-delete", kwargs={"pk": car2.id}))
 
         self.assertEqual(Car.objects.count(), 0)
-
-    def test_search_car(self):
-        manufacturer1 = Manufacturer.objects.create(name="BMW", country="Germany")
-        manufacturer2 = Manufacturer.objects.create(name="Audi", country="Germany")
-
-        Car.objects.create(model="e32", manufacturer=manufacturer1)
-        Car.objects.create(model="Q8", manufacturer=manufacturer2)
-        Car.objects.create(model="RS7", manufacturer=manufacturer2)
-        Car.objects.create(model="e38", manufacturer=manufacturer1)
-
-        response = self.client.get(f"{CAR_URL}?model=e")
-
-        car = Car.objects.filter(model__icontains="e")
-
-        self.assertEqual(list(response.context["car_list"]), list(car))
-
-
-DRIVER_URL = reverse("taxi:driver-list")
-
-
-class PublicDriverTests(TestCase):
-    def test_login_required(self):
-        response = self.client.get(DRIVER_URL)
-
-        self.assertNotEqual(response.status_code, 200)
 
 
 class PrivateDriverTests(TestCase):
@@ -84,12 +59,12 @@ class PrivateDriverTests(TestCase):
 
     def test_create_driver(self):
         form_data = {
-            "username": "new_user",
-            "password1": "user12345",
-            "password2": "user12345",
-            "first_name": "test first",
-            "last_name": "test last",
-            "license_number": "HHH88888",
+            "username": "test_user",
+            "password1": "password1",
+            "password2": "password1",
+            "first_name": "First_name",
+            "last_name": "Last_name",
+            "license_number": "AAA34567",
         }
 
         self.client.post(reverse("taxi:create-driver"), data=form_data)
@@ -115,14 +90,14 @@ class PublicManufacturerTests(TestCase):
 class PrivateManufacturerTests(TestCase):
     def setUp(self) -> None:
         self.user = get_user_model().objects.create_user(
-            username="user",
-            password="user12345",
+            username="test_user",
+            password="password",
         )
         self.client.force_login(self.user)
 
     def test_retrieve_manufacturer(self):
-        Manufacturer.objects.create(name="BMW", country="Germany")
-        Manufacturer.objects.create(name="Audi", country="Germany")
+        Manufacturer.objects.create(name="Fiat", country="Italy")
+        Manufacturer.objects.create(name="Lancia", country="Italy")
 
         response = self.client.get(MANUFACTURER_URL)
 
@@ -136,8 +111,8 @@ class PrivateManufacturerTests(TestCase):
 
     def test_create_manufacturer(self):
         form_data = {
-            "name": "BMW",
-            "country": "Germany",
+            "name": "Fiat",
+            "country": "Italy",
         }
 
         self.client.post(reverse("taxi:create-manufacturer"), data=form_data)
@@ -148,9 +123,9 @@ class PrivateManufacturerTests(TestCase):
         self.assertEqual(new_manufacturer.country, form_data["country"])
 
     def test_update_manufacturer(self):
-        new_manufacturer = Manufacturer.objects.create(name="BMW", country="Germany")
+        new_manufacturer = Manufacturer.objects.create(name="Fiat", country="Italy")
 
-        upd_data = {"name": "Mercedes", "country": new_manufacturer.country}
+        upd_data = {"name": "Ferrari", "country": new_manufacturer.country}
 
         self.client.post(
             reverse("taxi:manufacturer-update", kwargs={"pk": new_manufacturer.id}),
@@ -165,9 +140,9 @@ class PrivateManufacturerTests(TestCase):
         self.assertEqual(new_manufacturer.country, upd_manufacturer.country)
 
     def test_delete_manufacturer(self):
-        new_manufacturer1 = Manufacturer.objects.create(name="BMW", country="Germany")
+        new_manufacturer1 = Manufacturer.objects.create(name="Fiat", country="Italy")
         new_manufacturer2 = Manufacturer.objects.create(
-            name="Mercedes", country="Germany"
+            name="Ferrari", country="Italy"
         )
 
         self.client.post(
